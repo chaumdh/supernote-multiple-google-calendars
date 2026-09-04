@@ -1,3 +1,6 @@
+// This project copies calendar events from different source calendars and create the same events in the destination calendar
+// Intended for Supernote device because Supernote A5X only display the main calendar under a Google account
+
 // Calendars to merge from.
 // Find Calendar ID in Calendar Settings > Integrate calendar > Calendar ID
 // Use "[X]" notation to prefix your calendar event.
@@ -77,7 +80,7 @@ function deleteEvents(startTime, endTime) {
       console.log(result)
     }
 
-    console.log(`${result.length} deleted events between ${startTime} and ${endTime}.`)
+    console.log(`${result.length} deleted event(s) between ${startTime} and ${endTime}.`)
   } else {
     console.log("No events to delete.")
   }
@@ -89,9 +92,10 @@ function createEvents(startTime, endTime) {
   for (let calendarName in CALENDARS_TO_MERGE) {
     const calendarId = CALENDARS_TO_MERGE[calendarName]
     const calendarToCopy = CalendarApp.getCalendarById(calendarId)
+    const calendarNameId = calendarName + " " + calendarId
 
     if (!calendarToCopy) {
-      console.log("Calendar not found: '%s'.", calendarId)
+      console.log("Calendar not found: '%s'.", calendarNameId)
       continue
     }
 
@@ -103,14 +107,22 @@ function createEvents(startTime, endTime) {
       orderBy: "startTime",
     })
 
-    // If nothing find, move to next calendar
+    // If nothing found, move to next calendar
     if (!(events.items && events.items.length > 0)) {
+      console.log("No new items found in calendar: '%s'.", calendarNameId)
       continue
     }
 
+    console.log(`Copying ${events.items.length} event(s) from calendar: ${calendarNameId}.`)
     events.items.forEach((event) => {
+
       // Don't copy "free" events.
-      if (event.transparency && event.transparency === "transparent") {
+      // event.transparency === "transparent" means event does not block time on the calendar (i.e. both "free" and "all-day" events)
+      // https://developers.google.com/workspace/calendar/api/v3/reference/events#resource
+      // all-day events has event.start.date and no event.start.dateTime or event.start.timeZone
+      // other events has no event.start.date but with both event.start.dateTime and event.start.timeZone
+      if (!event.start.date && event.transparency && event.transparency === "transparent") {
+      // if not an all-day event and the event does not block time on the calendar, then skip it
         return
       }
 
@@ -119,7 +131,7 @@ function createEvents(startTime, endTime) {
         event.summary = DEFAULT_EVENT_TITLE
       }
 
-      requestBody.push({
+      const requestEvent = {
         method: "POST",
         endpoint: `${ENDPOINT_BASE}/${CALENDAR_TO_MERGE_INTO}/events?conferenceDataVersion=1`,
         requestBody: {
@@ -129,8 +141,14 @@ function createEvents(startTime, endTime) {
           start: event.start,
           end: event.end,
           conferenceData: event.conferenceData,
+          reminders: {
+            useDefault: false,
+            overrides: null,
+          },
+          transparency: event.transparency,
         },
-      })
+      }
+      requestBody.push(requestEvent)
     })
   }
 
@@ -144,7 +162,7 @@ function createEvents(startTime, endTime) {
       console.log(result)
     }
 
-    console.log(`${result.length} events created between ${startTime} and ${endTime}.`)
+    console.log(`${result.length} event(s) created between ${startTime} and ${endTime}.`)
   } else {
     console.log("No events to create.")
   }

@@ -14,9 +14,9 @@ This is a modification in name only of https://github.com/karbassi/sync-multiple
 4. Click on "New Project".
 5. Replace everything in `Code.gs` with the contents of [SyncCalendarsIntoOne.gs].
 6. Create a new script file called `BatchRequests.gs` with the contents of [BatchRequests.gs]
-7. Update `calendarsToMerge`, `calendarToMergeInto`, `SYNC_DAYS_IN_PAST`, and `SYNC_DAYS_IN_FUTURE` variables. Be sure to save.
+7. Update `CALENDARS_TO_MERGE`, `CALENDAR_TO_MERGE_INTO`, `SYNC_DAYS_IN_PAST`, and `SYNC_DAYS_IN_FUTURE` variables. Be sure to save.
 8. Click the `Project Settings` Gear icon on the left panel. Check the `Show "appsscript.json" manifest file in editor`.
-9. Go back to code editor on the left, and update its content with [appsscript.json].
+9. Go back to code editor on the left, and update its content with [appsscript.json]. Edit the timeZone in this file to your time zone.
 10. Click `Run`. This will load the `Authorization required` window since it's your first time running the script.
 11. Click on `Review permissions` and give it permission to your account.
 12. Click on `Triggers` clock icon on the left panel to add a trigger. Click on `Add Trigger`.
